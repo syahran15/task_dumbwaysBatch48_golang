@@ -1,0 +1,42 @@
+:root {
+  --bg: #c2dedc;
+  --hover: rgb(22, 143, 167);
+}
+
+body {
+  background-color: var(--bg) !important;
+}
+section {
+  padding-top: 7em;
+}
+
+.group i,
+.social-media i {
+  color: black;
+}
+
+.group i:hover,
+.social-media i:hover {
+  color: #116a7b;
+}
+
+/* .left {
+  flex: 1.2;
+}
+
+.right {
+  flex: 1;
+} */
+
+.card {
+  transition-duration: 0.2s;
+  transition-property: transform;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.container .card {
+  margin: 2em;
+}

@@ -1,0 +1,11 @@
+body {
+  background-color: var(--bg) !important;
+}
+
+section {
+    margin-top: 7em;
+}
+
+.container-technology {
+  width: 50%;
+}

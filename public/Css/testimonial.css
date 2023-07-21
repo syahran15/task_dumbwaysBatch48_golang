@@ -1,0 +1,6 @@
+body {
+    background-color: var(--bg) !important;
+  }
+  section {
+    padding-top: 7em;
+  }

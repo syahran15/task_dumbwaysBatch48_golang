@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="../public/Css/navigation.css" />
+    <link rel="stylesheet" href="../public/Css/style.css" />
+    <title>Home</title>
+
+    <!-- Font awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Bootstrap -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+      <div class="container">
+        <a class="navbar-brand" href="../views/index.html"><img src="../public/images/logo.svg" alt="logo"></a>
+
+        <!-- Toggle -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Toggle End -->
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../views/blog.html">Blog</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="../views/testimonial.html">Testimonial</a>
+            </li>
+          </ul>
+          <a href="../views/contact.html" class="btn btn-contact rounded-3 px-4 py-2">
+            Contact Me
+          </a>         
+          </div>
+        </div>
+      </div>
+    </nav>
+    <!-- Navbar End -->
+
+    <!-- Content -->
+    <section class = "container">
+      <div class="mt-3 row">
+          <div class="left col-7">
+            <h1 class="fs-2 fw-bolder mb-3">Hi Welcome To My Personal Web</h1>
+            <p class="fs-5">
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Eveniet
+              velit ab repudiandae deserunt quo eaque corporis laborum labore
+              maxime ipsa. Quis expedita autem dolor voluptatibus, ex labore illo
+              doloremque harum! Repudiandae, harum possimus ut reprehenderit culpa
+              pariatur repellat, beatae amet deserunt cum consequatur est incidunt
+              accusantium dolor necessitatibus at. Ut placeat expedita corrupti
+              quam enim quasi iusto cupiditate. Molestias, nihil?
+            </p>
+            <button class="btn btn-contact rounded-3 px-3 py-2 my-3">
+              Contact
+            </button>
+            <div class="group my-3">
+              <span class="fs-5 me-2">download CV</span>
+              <a href="#"><i class="fa-solid fa-download fs-4 mb-4"></i></a>
+            </div>
+            <div class="social-media">
+              <a href=""><i class="fa-brands fa-linkedin fs-1 me-4"></i></a>
+              <a href=""><i class="fa-brands fa-instagram fs-1 me-4"></i></a>
+              <a href=""><i class="fa-brands fa-facebook fs-1 me-4"></i></a>
+              <a href=""><i class="fa-brands fa-twitter fs-1 me-4"></i></a>
+            </div>
+          </div>
+          <div class="right col-5">
+            <div class="card" style="width: 30em; height: 30em;">
+              <img src="../public/images/profile.jpg" class="card-img-top" alt="profile" style="height: 80%; object-fit: cover;" />
+              <div class="card-body text-center">
+                  <h4>Ahmad Syahran Zidane</h3>
+                  <p>Fullstack Developer</p>
+              </div>
+            </div>
+          </div>
+      </div>
+    </section>
+    <hr>
+    
+    <!-- Result Blog -->
+    <section>
+      <h1 class="text-center">My Project</h1>
+      <div class="container d-flex justify-content-center align-items-center">
+        <div class="card col-md-6 " style="width: 25rem; height: 35rem; ">
+          <a href="detail-blog.html" style="height: 40%; object-fit: cover; "><img src="../public/images/img-result.jpg" class="card-img-top p-2" alt="result"></a>
+          <div class="card-body">
+            <h5 class="card-title" id="title">Alquran Mobile App</h5>
+            <p class="card-text" id="duration">Durasi : 4 Bulan 10 Hari</p>
+            <p class="card-text" id="decription">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio, quia cumque nihil alias voluptatibus reiciendis. Quae qui placeat provident suscipit ducimus, tempora rem, atque illum nostrum earum aspernatur nemo necessitatibus!</p>
+            <div class="programming-language mb-3">
+              <i class="fa-brands fa-js fs-4 me-2" id="javascript"></i>
+              <i class="fa-brands fa-php fs-4 me-2" id="php"></i>
+              <i class="fa-brands fa-java fs-4 me-2" id="java"></i>
+              <i class="fa-brands fa-react fs-4 me-2" id="reactsJS"></i>
+            </div>
+            <div class="d-flex justify-content-evenly">
+              <a href="#" class="btn btn-primary px-5">Edit</a>
+              <a href="#" class="btn btn-primary px-5">Delete</a>
+            </div>
+          </div>
+        </div>
+        <div class="card col-md-6" style="width: 25rem; height: 35rem;">
+          <a href="detail-blog.html" style="height: 40%; object-fit: cover; "><img src="../public/images/img-result.jpg" class="card-img-top p-2" alt="result"></a>
+          <div class="card-body">
+            <h5 class="card-title" id="title">Alquran Mobile App</h5>
+            <p class="card-text" id="duration">Durasi : 4 Bulan 10 Hari</p>
+            <p class="card-text" id="decription">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio, quia cumque nihil alias voluptatibus reiciendis. Quae qui placeat provident suscipit ducimus, tempora rem, atque illum nostrum earum aspernatur nemo necessitatibus!</p>
+            <div class="programming-language mb-3">
+              <i class="fa-brands fa-js fs-4 me-2" id="javascript"></i>
+              <i class="fa-brands fa-php fs-4 me-2" id="php"></i>
+              <i class="fa-brands fa-java fs-4 me-2" id="java"></i>
+              <i class="fa-brands fa-react fs-4 me-2" id="reactsJS"></i>
+            </div>
+            <div class="d-flex justify-content-evenly">
+              <a href="#" class="btn btn-primary px-5">Edit</a>
+              <a href="#" class="btn btn-primary px-5">Delete</a>
+            </div>
+          </div>
+        </div>
+        <div class="card col-md-6" style="width: 25rem; height: 35rem;">
+          <a href="detail-blog.html" style="height: 40%; object-fit: cover; "><img src="../public/images/img-result.jpg" class="card-img-top p-2" alt="result"></a>
+          <div class="card-body">
+            <h5 class="card-title" id="title">Alquran Mobile App</h5>
+            <p class="card-text" id="duration">Durasi : 4 Bulan 10 Hari</p>
+            <p class="card-text" id="decription">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio, quia cumque nihil alias voluptatibus reiciendis. Quae qui placeat provident suscipit ducimus, tempora rem, atque illum nostrum earum aspernatur nemo necessitatibus!</p>
+            <div class="programming-language mb-3">
+              <i class="fa-brands fa-js fs-4 me-2" id="javascript"></i>
+              <i class="fa-brands fa-php fs-4 me-2" id="php"></i>
+              <i class="fa-brands fa-java fs-4 me-2" id="java"></i>
+              <i class="fa-brands fa-react fs-4 me-2" id="reactsJS"></i>
+            </div>
+            <div class="d-flex justify-content-evenly">
+              <a href="#" class="btn btn-primary px-5">Edit</a>
+              <a href="#" class="btn btn-primary px-5">Delete</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </section>
+    <!-- Result Blog End-->
+
+    <!-- JavaScript -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+      crossorigin="anonymous"
+    ></script>
+    <script src="Js/index.js"></script>
+  </body>
+</html>
