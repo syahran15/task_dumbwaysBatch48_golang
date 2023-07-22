@@ -51,13 +51,13 @@
                 <a class="nav-link active" aria-current="page" href="/">Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="blog">Blog</a>
+                <a class="nav-link" href="/blog">Blog</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="testimonial">Testimonial</a>
               </li>
             </ul>
-            <a href="contact" class="btn btn-contact rounded-3 px-4 py-2">
+            <a href="/contact" class="btn btn-contact rounded-3 px-4 py-2">
               Contact Me
             </a>         
             </div>
@@ -67,8 +67,9 @@
       <!-- Navbar End -->
     
       <!-- Content -->
+      <h1 style="margin-top: 2em; text-align: center;">{{.Id}}</h1>
       <section>
-        <h1 class="text-center mb-5">Dumbways Web App</h1>
+        <h1 class="text-center mb-5">{{.Title}}</h1>
         <div class="container">
           <div class="main-content d-flex mb-5">
             <div class="detail-img col-9">
@@ -112,7 +113,7 @@
             </div>
           </div>
           <div class="description-content">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi,
+            <!-- Lorem ipsum dolor sit amet consectetur adipisicing elit. Commodi,
             ipsum quae. Quasi at quidem autem minus! Quisquam debitis cumque,
             consequatur, fugiat sit eveniet nisi recusandae minus reiciendis nobis
             deleniti repellat! Sint, provident architecto. Architecto saepe odio
@@ -143,7 +144,10 @@
             iure! Quaerat eligendi, explicabo, molestiae ab nostrum autem odit
             laudantium, aliquam ut magnam reprehenderit labore distinctio
             dignissimos ducimus tempora asperiores exercitationem eos dicta
-            consectetur tenetur velit? Natus vel possimus quam dolorem?
+            consectetur tenetur velit? Natus vel possimus quam dolorem? -->
+
+            {{.Content}}
+
           </div>
         </div>
       </section>

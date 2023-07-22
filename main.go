@@ -22,7 +22,7 @@ func main() {
 	e.GET("/blog", blog)
 	e.GET("/testimonial", testimonial)
 	e.GET("/contact", contact)
-	e.GET("/blog-detail/:id", blogDetail)
+	e.GET("/detail-blog/:id", detailBlog)
 
 	e.POST("/blog", addBlog)
 
@@ -69,22 +69,22 @@ func main() {
 		return tmpl.Execute(c.Response(), nil)
 	}
 
-	func blogDetail (c echo.Context) error {
+	func detailBlog (c echo.Context) error {
 		id := c.Param("id") 
 
-		tmpl, err := template.ParseFiles("views/blog-detail.html")
+		tmpl, err := template.ParseFiles("views/detail-blog.html")
 
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
-		blogDetail := map[string]interface{}{ // interface -> tipe data apapun
+		detailBlog := map[string]interface{}{ // interface -> tipe data apapun
 			"Id":      id,
 			"Title":   "Dumbways ID memang keren",
 			"Content": "Dumbways ID adalah bootcamp terbaik sedunia seakhirat!",
 		}
 	
-		return tmpl.Execute(c.Response(), blogDetail)
+		return tmpl.Execute(c.Response(), detailBlog)
 	}
 
 	func addBlog(c echo.Context) error {
