@@ -109,64 +109,55 @@
     <hr>
     
     <!-- Result Blog -->
-    <section class="container">
+    <section class="container-fluid">
       <h1 class="text-center">My Project</h1>
       <div class="row d-flex justify-content-center">
-        <div class="card col" style="width: 25rem; height: 35rem; ">
-          <a href="detail-blog" style="height: 40%; object-fit: cover; "><img src="/public/images/img-result.jpg" class="card-img-top p-2" alt="result"></a>
+        {{range $index, $blog := .Blogs}}
+        <div class="card col col-sm-12 col-md-6 col-lg-4 m-3" style="width: 25rem;  ">
+         <img src="/public/images/{{$blog.Image}}" class="mt-2" style="width: 100%; height: 300px; object-fit: cover;" alt="result">
           <div class="card-body">
-            <h5 class="card-title" id="title">Alquran Mobile App</h5>
-            <p class="card-text" id="duration">Durasi : 4 Bulan 10 Hari</p>
-            <p class="card-text" id="decription">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio, quia cumque nihil alias voluptatibus reiciendis. Quae qui placeat provident suscipit ducimus, tempora rem, atque illum nostrum earum aspernatur nemo necessitatibus!</p>
+            <a href="detail-blog/{{$index}}" style="text-decoration: none; color: black;">
+              <h5 class="card-title" id="title">{{$blog.ProjectName}}</h5>
+            </a>
+            <p class="card-text" id="duration">{{$blog.Duration}} || {{$blog.Author}}</p>
+            <p class="card-text" id="decription">{{$blog.Description}}</p>
             <div class="programming-language mb-3">
+              {{if $blog.Javascript}}
               <i class="fa-brands fa-js fs-4 me-2" id="javascript"></i>
+              {{end}}
+              {{if $blog.PHP}}
               <i class="fa-brands fa-php fs-4 me-2" id="php"></i>
+              {{end}}
+              {{if $blog.Java}}
               <i class="fa-brands fa-java fs-4 me-2" id="java"></i>
+              {{end}}
+              {{if $blog.ReactJS}}
               <i class="fa-brands fa-react fs-4 me-2" id="reactsJS"></i>
+              {{end}}
             </div>
-            <div class="d-flex justify-content-evenly">
-              <a href="#" class="btn btn-primary px-5">Edit</a>
-              <a href="#" class="btn btn-primary px-5">Delete</a>
-            </div>
+            <div
+              class="btn-card-index d-flex justify-content-center gap-2"
+              style="width: 100%"
+            >
+              <form
+                class="d-inline"
+                action=""
+                method=""
+                style="width: 100%"
+              >
+              <button class="btn btn-dark" style="width: 100%">edit</button>
+              </form>
+              <form
+                class="d-inline"
+                action="/delete-blog/{{$index}}"
+                method="POST"
+                style="width: 100%"
+              >
+                <button class="btn btn-dark" style="width: 100%">delete</button>
+              </form>
           </div>
         </div>
-        <div class="card col" style="width: 25rem; height: 35rem;">
-          <a href="detail-blog" style="height: 40%; object-fit: cover; "><img src="/public/images/img-result.jpg" class="card-img-top p-2" alt="result"></a>
-          <div class="card-body">
-            <h5 class="card-title" id="title">Alquran Mobile App</h5>
-            <p class="card-text" id="duration">Durasi : 4 Bulan 10 Hari</p>
-            <p class="card-text" id="decription">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio, quia cumque nihil alias voluptatibus reiciendis. Quae qui placeat provident suscipit ducimus, tempora rem, atque illum nostrum earum aspernatur nemo necessitatibus!</p>
-            <div class="programming-language mb-3">
-              <i class="fa-brands fa-js fs-4 me-2" id="javascript"></i>
-              <i class="fa-brands fa-php fs-4 me-2" id="php"></i>
-              <i class="fa-brands fa-java fs-4 me-2" id="java"></i>
-              <i class="fa-brands fa-react fs-4 me-2" id="reactsJS"></i>
-            </div>
-            <div class="d-flex justify-content-evenly">
-              <a href="#" class="btn btn-primary px-5">Edit</a>
-              <a href="#" class="btn btn-primary px-5">Delete</a>
-            </div>
-          </div>
-        </div>
-        <div class="card col" style="width: 25rem; height: 35rem;">
-          <a href="detail-blog" style="height: 40%; object-fit: cover; "><img src="/public/images/img-result.jpg" class="card-img-top p-2" alt="result"></a>
-          <div class="card-body">
-            <h5 class="card-title" id="title">Alquran Mobile App</h5>
-            <p class="card-text" id="duration">Durasi : 4 Bulan 10 Hari</p>
-            <p class="card-text" id="decription">Lorem ipsum dolor sit amet consectetur adipisicing elit. Odio, quia cumque nihil alias voluptatibus reiciendis. Quae qui placeat provident suscipit ducimus, tempora rem, atque illum nostrum earum aspernatur nemo necessitatibus!</p>
-            <div class="programming-language mb-3">
-              <i class="fa-brands fa-js fs-4 me-2" id="javascript"></i>
-              <i class="fa-brands fa-php fs-4 me-2" id="php"></i>
-              <i class="fa-brands fa-java fs-4 me-2" id="java"></i>
-              <i class="fa-brands fa-react fs-4 me-2" id="reactsJS"></i>
-            </div>
-            <div class="d-flex justify-content-evenly">
-              <a href="#" class="btn btn-primary px-5">Edit</a>
-              <a href="#" class="btn btn-primary px-5">Delete</a>
-            </div>
-          </div>
-        </div>
-      </div>
+        {{end}}
       </div>
     </section>
     <!-- Result Blog End-->
@@ -177,6 +168,5 @@
       integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
       crossorigin="anonymous"
     ></script>
-    <script src="Js//.js"></script>
   </body>
 </html>

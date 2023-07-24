@@ -3,10 +3,64 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"text/template"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
+
+// Create struct -> struct is like class in javascript
+type Blog struct {
+	ProjectName string
+	StartDate string
+	EndDate string
+	Duration string
+	Author string
+	Description string
+	Javascript bool
+	PHP bool
+	Java bool
+	ReactJS bool
+	Image string
+}
+
+// Dummy data
+var dataBlogs = []Blog {
+	{
+		ProjectName: "Dumbways ",
+		Duration: "4 Bulan 10 Hari",
+		Author: "Ahmad Syahran Zidane",
+		Description: "Halo Guys",
+		Javascript: true,
+		PHP: true,
+		Java: true,
+		ReactJS: true,
+		Image: "result1.jpg",
+	},
+	{
+		ProjectName: "Dumbways ",
+		Duration: "4 Bulan 10 Hari",
+		Author: "Ahmad Syahran Zidane",
+		Description: "Halo Guys",
+		Javascript: true,
+		PHP: true,
+		Java: true,
+		ReactJS:true,
+		Image: "result2.jpg",
+	},
+	{
+		ProjectName: "Dumbways ",
+		Duration: "4 Bulan 10 Hari",
+		Description: "Halo Guys",
+		Javascript: true,
+		PHP: true,
+		Java: true,
+		ReactJS:true,
+		Image: "result3.jpg",
+	},
+
+}
 
 func main() {
 
@@ -24,11 +78,53 @@ func main() {
 	e.GET("/contact", contact)
 	e.GET("/detail-blog/:id", detailBlog)
 
+	//POST routing
 	e.POST("/blog", addBlog)
+	e.POST("/delete-blog/:id", deleteBlog)
 
 
 
-	e.Logger.Fatal(e.Start("localhost:5000"))
+	e.Logger.Fatal(e.Start(":5000"))
+
+}
+
+	func getDuration(startDate string, endDate string) string {
+	startTime, _ := time.Parse("2006-01-02", startDate) 
+	endTime, _ := time.Parse("2006-01-02", endDate) 
+
+	durationTime := int(endTime.Sub(startTime).Hours())
+	durationDays := durationTime / 24
+	durationWeeks := durationDays / 7
+	durationMonths := durationWeeks / 4
+	durationYears := durationMonths / 12
+
+	var duration string
+	
+	if durationYears > 1 {
+		duration = strconv.Itoa(durationYears) + " years"
+	} else if durationYears > 0 {
+		duration = strconv.Itoa(durationYears) + " year"
+	} else {
+		if durationMonths > 1 {
+			duration = strconv.Itoa(durationMonths) + " months"
+		} else if durationMonths > 0 {
+			duration = strconv.Itoa(durationMonths) + " month"
+		} else {
+			if durationWeeks > 1 {
+				duration = strconv.Itoa(durationWeeks) + " weeks"
+			} else if durationWeeks > 0 {
+				duration = strconv.Itoa(durationWeeks) + " week"
+			} else {
+				if durationDays > 1 {
+					duration = strconv.Itoa(durationDays) + " days"
+				} else {
+					duration = strconv.Itoa(durationDays) + " day"
+				}
+			}
+		}
+	}
+
+	return duration
 
 }
 
@@ -39,8 +135,13 @@ func main() {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
-		return tmpl.Execute(c.Response(), nil)
+		data :=  map[string]interface{} {
+			"Blogs" : dataBlogs,
+		}
+
+		return tmpl.Execute(c.Response(), data)
 	}
+	
 	func blog (c echo.Context) error  {
 		tmpl, err := template.ParseFiles("views/blog.html")
 
@@ -50,6 +151,7 @@ func main() {
 
 		return tmpl.Execute(c.Response(), nil)
 	}
+
 	func testimonial (c echo.Context) error  {
 		tmpl, err := template.ParseFiles("views/testimonial.html")
 
@@ -59,6 +161,7 @@ func main() {
 
 		return tmpl.Execute(c.Response(), nil)
 	}
+
 	func contact (c echo.Context) error  {
 		tmpl, err := template.ParseFiles("views/contact.html")
 
@@ -70,22 +173,42 @@ func main() {
 	}
 
 	func detailBlog (c echo.Context) error {
-		id := c.Param("id") 
+		id, _ := strconv.Atoi(c.Param("id"))
 
-		tmpl, err := template.ParseFiles("views/detail-blog.html")
 
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err.Error())
+		var blogDetail = Blog{}
+
+	for i, data := range dataBlogs {
+		if id == i {
+			blogDetail = Blog{
+				ProjectName:    data.ProjectName,
+				StartDate:  	data.StartDate,
+				EndDate:    	data.EndDate,
+				Duration:   	data.Duration,
+				Description: 	data.Description,
+				Javascript:     data.Javascript,
+				PHP:    		data.PHP,
+				Java:     		data.Java,
+				ReactJS: 		data.ReactJS,
+				Image: 			data.Image,
+			}
 		}
-
-		detailBlog := map[string]interface{}{ // interface -> tipe data apapun
-			"Id":      id,
-			"Title":   "Dumbways ID memang keren",
-			"Content": "Dumbways ID adalah bootcamp terbaik sedunia seakhirat!",
-		}
-	
-		return tmpl.Execute(c.Response(), detailBlog)
 	}
+	data := map[string]interface{}{
+		"Blog":   blogDetail,
+	}
+
+	var tmpl, err = template.ParseFiles("views/detail-blog.html")
+	
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return tmpl.Execute(c.Response(), data)
+
+	}
+
+
 
 	func addBlog(c echo.Context) error {
 		projectName := c.FormValue("input-projectName")
@@ -97,16 +220,30 @@ func main() {
 		java := c.FormValue("input-java")
 		reactJS := c.FormValue("input-reactJS")
 		image := c.FormValue("input-image")
+		
 	
-		fmt.Println("name :", projectName)
-		fmt.Println("start :", startDate)
-		fmt.Println("end :", endDate)
-		fmt.Println("description: ", description)
-		fmt.Println("Nilai dari checkbox :", javascript)
-		fmt.Println("Nilai dari checkbox :", php)
-		fmt.Println("Nilai dari checkbox :", java)
-		fmt.Println("Nilai dari checkbox :", reactJS)
-		fmt.Println(image)
+		newBlog := Blog {
+			ProjectName: projectName,
+			Duration: getDuration(startDate, endDate),
+			Author: "Ahmad Syahran Zidane",
+			Description: description,
+			Javascript: (javascript == "javascript"),
+			PHP: (php == "php"),
+			Java: (java == "java"),
+			ReactJS: (reactJS == "reactJS") ,
+			Image: image,
+		}
+
+
+		dataBlogs = append(dataBlogs, newBlog)
+
+		fmt.Println(dataBlogs)
 	
-		return c.Redirect(http.StatusMovedPermanently, "/blog")
+		return c.Redirect(http.StatusMovedPermanently, "/")
+	}
+
+	func deleteBlog(c echo.Context) error {
+		id, _ := strconv.Atoi(c.Param("id"))
+		dataBlogs = append(dataBlogs[:id], dataBlogs[id+1:]...)
+		return c.Redirect(http.StatusMovedPermanently, "/")
 	}
