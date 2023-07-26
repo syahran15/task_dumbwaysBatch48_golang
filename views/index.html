@@ -122,18 +122,15 @@
             <p class="card-text" id="duration">{{$blog.Duration}} || {{$blog.Author}}</p>
             <p class="card-text" id="decription">{{$blog.Description}}</p>
             <div class="programming-language mb-3">
-              {{if $blog.Javascript}}
+              
               <i class="fa-brands fa-js fs-4 me-2" id="javascript"></i>
-              {{end}}
-              {{if $blog.PHP}}
+           
               <i class="fa-brands fa-php fs-4 me-2" id="php"></i>
-              {{end}}
-              {{if $blog.Java}}
+            
               <i class="fa-brands fa-java fs-4 me-2" id="java"></i>
-              {{end}}
-              {{if $blog.ReactJS}}
+            
               <i class="fa-brands fa-react fs-4 me-2" id="reactsJS"></i>
-              {{end}}
+             
             </div>
             <div
               class="btn-card-index d-flex justify-content-center gap-2"
@@ -144,21 +141,21 @@
                 action=""
                 method=""
                 style="width: 100%"
-              >
-              <button class="btn btn-dark" style="width: 100%">edit</button>
+                >
+                <button class="btn btn-dark" style="width: 100%">edit</button>
               </form>
               <form
-                class="d-inline"
-                action="/delete-blog/{{$index}}"
-                method="POST"
-                style="width: 100%"
+              class="d-inline"
+              action="/delete-blog/{{$index}}"
+              method="POST"
+              style="width: 100%"
               >
-                <button class="btn btn-dark" style="width: 100%">delete</button>
-              </form>
+              <button class="btn btn-dark" style="width: 100%">delete</button>
+            </form>
           </div>
         </div>
-        {{end}}
       </div>
+      {{end}}
     </section>
     <!-- Result Blog End-->
 

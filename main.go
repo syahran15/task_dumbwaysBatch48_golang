@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"personal-web/connection"
 	"strconv"
 	"text/template"
+
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -12,6 +15,7 @@ import (
 
 // Create struct -> struct is like class in javascript
 type Blog struct {
+	Id int
 	ProjectName string
 	StartDate string
 	EndDate string
@@ -65,6 +69,8 @@ var dataBlogs = []Blog {
 func main() {
 
 	e := echo.New()
+
+	connection.DatabaseConnect()
 
 	e.Static("/public", "public")
     // e.GET("/", func(c echo.Context) error {
@@ -128,18 +134,41 @@ func main() {
 
 }
 
-	func index (c echo.Context) error  {
+	func index (c echo.Context) error  {		
 		tmpl, err := template.ParseFiles("views/index.html")
 
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
-		data :=  map[string]interface{} {
-			"Blogs" : dataBlogs,
+		// GET DATA FROM DATABASE
+		dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT project_name, author, description, javascript, php, java, react, image, duration FROM tb_blog")
+
+		if errBlog != nil {
+			return c.JSON(http.StatusInternalServerError, errBlog.Error())
 		}
 
-		return tmpl.Execute(c.Response(), data)
+		var resultBlogs []Blog
+		for dataBlog.Next() {
+			var each = Blog{}
+
+			err := dataBlog.Scan(&each.ProjectName, &each.Author, &each.Description, &each.Javascript, &each.PHP, &each.Java, &each.ReactJS, &each.Image, &each.Duration)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, err.Error())
+			}
+
+			each.Author = "Syahran"
+
+
+			
+			resultBlogs = append(resultBlogs, each)
+		}
+
+		blog :=  map[string]interface{} {
+			"Blogs" : resultBlogs,
+		}
+
+		return tmpl.Execute(c.Response(), blog)
 	}
 	
 	func blog (c echo.Context) error  {
@@ -194,6 +223,7 @@ func main() {
 			}
 		}
 	}
+
 	data := map[string]interface{}{
 		"Blog":   blogDetail,
 	}
