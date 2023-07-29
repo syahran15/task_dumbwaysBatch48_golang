@@ -116,37 +116,41 @@
         <div class="card col col-sm-12 col-md-6 col-lg-4 m-3" style="width: 25rem;  ">
          <img src="/public/images/{{$blog.Image}}" class="mt-2" style="width: 100%; height: 300px; object-fit: cover;" alt="result">
           <div class="card-body">
-            <a href="detail-blog/{{$index}}" style="text-decoration: none; color: black;">
+            <a href="detail-blog/{{$blog.Id}}" style="text-decoration: none; color: black;">
               <h5 class="card-title" id="title">{{$blog.ProjectName}}</h5>
             </a>
-            <p class="card-text" id="duration">{{$blog.Duration}} || {{$blog.Author}}</p>
+            <p class="card-text" id="duration">{{$blog.Duration}}</p>
             <p class="card-text" id="decription">{{$blog.Description}}</p>
             <div class="programming-language mb-3">
-              
+              {{if $blog.Javascript}}
               <i class="fa-brands fa-js fs-4 me-2" id="javascript"></i>
-           
+              {{end}}
+              {{if $blog.PHP}}
               <i class="fa-brands fa-php fs-4 me-2" id="php"></i>
-            
+              {{end}}
+              {{if $blog.Java}}
               <i class="fa-brands fa-java fs-4 me-2" id="java"></i>
-            
+              {{end}}
+              {{if $blog.ReactJS}}
               <i class="fa-brands fa-react fs-4 me-2" id="reactsJS"></i>
-             
+              {{end}}
             </div>
+            
             <div
               class="btn-card-index d-flex justify-content-center gap-2"
               style="width: 100%"
             >
               <form
                 class="d-inline"
-                action=""
-                method=""
+                action="/update-blog-form/{{$blog.Id}}"
+                method="GET"
                 style="width: 100%"
                 >
-                <button class="btn btn-dark" style="width: 100%">edit</button>
+                <button href="update-blog" class="btn btn-dark" style="width: 100%">edit</button>
               </form>
               <form
               class="d-inline"
-              action="/delete-blog/{{$index}}"
+              action="/delete-blog/{{$blog.Id}}"
               method="POST"
               style="width: 100%"
               >

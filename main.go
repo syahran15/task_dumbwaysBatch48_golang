@@ -17,53 +17,17 @@ import (
 type Blog struct {
 	Id int
 	ProjectName string
-	StartDate string
-	EndDate string
+	StartDate time.Time
+	EndDate time.Time
 	Duration string
 	Author string
 	Description string
+	Technologies []string
 	Javascript bool
 	PHP bool
 	Java bool
 	ReactJS bool
 	Image string
-}
-
-// Dummy data
-var dataBlogs = []Blog {
-	{
-		ProjectName: "Dumbways ",
-		Duration: "4 Bulan 10 Hari",
-		Author: "Ahmad Syahran Zidane",
-		Description: "Halo Guys",
-		Javascript: true,
-		PHP: true,
-		Java: true,
-		ReactJS: true,
-		Image: "result1.jpg",
-	},
-	{
-		ProjectName: "Dumbways ",
-		Duration: "4 Bulan 10 Hari",
-		Author: "Ahmad Syahran Zidane",
-		Description: "Halo Guys",
-		Javascript: true,
-		PHP: true,
-		Java: true,
-		ReactJS:true,
-		Image: "result2.jpg",
-	},
-	{
-		ProjectName: "Dumbways ",
-		Duration: "4 Bulan 10 Hari",
-		Description: "Halo Guys",
-		Javascript: true,
-		PHP: true,
-		Java: true,
-		ReactJS:true,
-		Image: "result3.jpg",
-	},
-
 }
 
 func main() {
@@ -83,10 +47,14 @@ func main() {
 	e.GET("/testimonial", testimonial)
 	e.GET("/contact", contact)
 	e.GET("/detail-blog/:id", detailBlog)
+	e.GET("/update-blog-form/:id", updateBlogForm)
+
 
 	//POST routing
 	e.POST("/blog", addBlog)
 	e.POST("/delete-blog/:id", deleteBlog)
+	e.POST("/update-blog/:id", updateBlog)
+
 
 
 
@@ -94,11 +62,10 @@ func main() {
 
 }
 
-	func getDuration(startDate string, endDate string) string {
-	startTime, _ := time.Parse("2006-01-02", startDate) 
-	endTime, _ := time.Parse("2006-01-02", endDate) 
+	func getDuration(startDate, endDate time.Time) string {
 
-	durationTime := int(endTime.Sub(startTime).Hours())
+
+	durationTime := int(endDate.Sub(startDate).Hours())
 	durationDays := durationTime / 24
 	durationWeeks := durationDays / 7
 	durationMonths := durationWeeks / 4
@@ -134,42 +101,56 @@ func main() {
 
 }
 
-	func index (c echo.Context) error  {		
-		tmpl, err := template.ParseFiles("views/index.html")
+func index(c echo.Context) error {
+	tmpl, err := template.ParseFiles("views/index.html")
 
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	// GET DATA FROM DATABASE
+	dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT id, project_name, description, image, start_date, end_date, technologies FROM public.tb_blog")
+
+	if errBlog != nil {
+		return c.JSON(http.StatusInternalServerError, errBlog.Error())
+	}
+
+	var resultBlogs []Blog
+	for dataBlog.Next() {
+		var each = Blog{}
+
+		err := dataBlog.Scan(&each.Id, &each.ProjectName, &each.Description, &each.Image, &each.StartDate, &each.EndDate, &each.Technologies)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
-		// GET DATA FROM DATABASE
-		dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT project_name, author, description, javascript, php, java, react, image, duration FROM tb_blog")
+		// Duration
+		each.Duration = getDuration(each.StartDate, each.EndDate)
 
-		if errBlog != nil {
-			return c.JSON(http.StatusInternalServerError, errBlog.Error())
+		//CHECKBOX
+		if checkValue(each.Technologies, "javascript") {
+			each.Javascript = true
+		}
+		if checkValue(each.Technologies, "php") {
+			each.PHP = true
+		}
+		if checkValue(each.Technologies, "java") {
+			each.Java = true
+		}
+		if checkValue(each.Technologies, "reactJS") {
+			each.ReactJS = true
 		}
 
-		var resultBlogs []Blog
-		for dataBlog.Next() {
-			var each = Blog{}
-
-			err := dataBlog.Scan(&each.ProjectName, &each.Author, &each.Description, &each.Javascript, &each.PHP, &each.Java, &each.ReactJS, &each.Image, &each.Duration)
-			if err != nil {
-				return c.JSON(http.StatusInternalServerError, err.Error())
-			}
-
-			each.Author = "Syahran"
-
-
-			
-			resultBlogs = append(resultBlogs, each)
-		}
-
-		blog :=  map[string]interface{} {
-			"Blogs" : resultBlogs,
-		}
-
-		return tmpl.Execute(c.Response(), blog)
+		resultBlogs = append(resultBlogs, each)
 	}
+
+	blog := map[string]interface{}{
+		"Blogs": resultBlogs,
+	}
+
+	return tmpl.Execute(c.Response(), blog)
+}
+
 	
 	func blog (c echo.Context) error  {
 		tmpl, err := template.ParseFiles("views/blog.html")
@@ -202,30 +183,44 @@ func main() {
 	}
 
 	func detailBlog (c echo.Context) error {
-		id, _ := strconv.Atoi(c.Param("id"))
-
+		id := c.Param("id")
 
 		var blogDetail = Blog{}
 
-	for i, data := range dataBlogs {
-		if id == i {
-			blogDetail = Blog{
-				ProjectName:    data.ProjectName,
-				StartDate:  	data.StartDate,
-				EndDate:    	data.EndDate,
-				Duration:   	data.Duration,
-				Description: 	data.Description,
-				Javascript:     data.Javascript,
-				PHP:    		data.PHP,
-				Java:     		data.Java,
-				ReactJS: 		data.ReactJS,
-				Image: 			data.Image,
-			}
+		//query get 1 data
+		idToInt, _ := strconv.Atoi(id)
+
+		errQuery := connection.Conn.QueryRow(context.Background(), "SELECT id, project_name, description, image, start_date, end_date, technologies FROM public.tb_blog WHERE id = $1", idToInt).Scan(&blogDetail.Id, &blogDetail.ProjectName, &blogDetail.Description, &blogDetail.Image,  &blogDetail.StartDate,  &blogDetail.EndDate ,&blogDetail.Technologies)
+
+
+		if errQuery != nil {
+			return c.JSON(http.StatusInternalServerError, errQuery.Error())
 		}
-	}
+		
+		// Duration
+		blogDetail.Duration = getDuration(blogDetail.StartDate, blogDetail.EndDate)
+
+
+		//CHECKBOX
+		if checkValue(blogDetail.Technologies, "javascript") {
+			blogDetail.Javascript = true
+		}
+		if checkValue(blogDetail.Technologies, "php") {
+			blogDetail.PHP = true
+		}
+		if checkValue(blogDetail.Technologies, "java") {
+			blogDetail.Java = true
+		}
+		if checkValue(blogDetail.Technologies, "reactJS") {
+			blogDetail.ReactJS = true
+		}
+
 
 	data := map[string]interface{}{
-		"Blog":   blogDetail,
+		"Id" : id,
+		"Blog": blogDetail,
+		"startDateString" 	: blogDetail.StartDate.Format("2006-01-02"),
+		"endDateString"		: blogDetail.EndDate.Format("2006-01-02"),
 	}
 
 	var tmpl, err = template.ParseFiles("views/detail-blog.html")
@@ -245,35 +240,118 @@ func main() {
 		startDate := c.FormValue("input-startDate")
 		endDate := c.FormValue("input-endDate")
 		description := c.FormValue("input-description")
-		javascript := c.FormValue("input-JavaScript")
+		javascript := c.FormValue("input-javascript")
 		php := c.FormValue("input-php")
 		java := c.FormValue("input-java")
-		reactJS := c.FormValue("input-reactJS")
+		react := c.FormValue("input-reactJS")
+		technologies := []string{javascript,php,java,react}
 		image := c.FormValue("input-image")
+	
 		
-	
-		newBlog := Blog {
-			ProjectName: projectName,
-			Duration: getDuration(startDate, endDate),
-			Author: "Ahmad Syahran Zidane",
-			Description: description,
-			Javascript: (javascript == "javascript"),
-			PHP: (php == "php"),
-			Java: (java == "java"),
-			ReactJS: (reactJS == "reactJS") ,
-			Image: image,
+
+		insertDb, err := connection.Conn.Exec(context.Background(), "INSERT INTO public.tb_blog (project_name, description, image, start_date, end_date, technologies) VALUES ($1, $2, $3, $4, $5, $6)", projectName, description, image, startDate, endDate, technologies)
+			
+		fmt.Println("Row Affected : ", insertDb.RowsAffected()  )
+
+		if err != nil {
+			fmt.Println("There is something error guys")
+			c.JSON(http.StatusInternalServerError, err.Error())
 		}
-
-
-		dataBlogs = append(dataBlogs, newBlog)
-
-		fmt.Println(dataBlogs)
-	
+		
 		return c.Redirect(http.StatusMovedPermanently, "/")
 	}
 
 	func deleteBlog(c echo.Context) error {
-		id, _ := strconv.Atoi(c.Param("id"))
-		dataBlogs = append(dataBlogs[:id], dataBlogs[id+1:]...)
+		id := c.Param("id")
+		idToInt, _ := strconv.Atoi(id)
+		connection.Conn.Exec(context.Background(), "DELETE FROM tb_blog WHERE id=$1", idToInt)
+
 		return c.Redirect(http.StatusMovedPermanently, "/")
+	}
+	
+	func updateBlogForm (c echo.Context) error {
+		id := c.Param("id")
+
+		var blogDetail = Blog{}
+
+		//query get 1 data
+		idToInt, _ := strconv.Atoi(id)
+
+		errQuery := connection.Conn.QueryRow(context.Background(), "SELECT id, project_name, description, image, start_date, end_date, technologies FROM public.tb_blog WHERE id = $1", idToInt).Scan(&blogDetail.Id, &blogDetail.ProjectName, &blogDetail.Description, &blogDetail.Image,  &blogDetail.StartDate,  &blogDetail.EndDate ,&blogDetail.Technologies)
+
+
+		if errQuery != nil {
+			return c.JSON(http.StatusInternalServerError, errQuery.Error())
+		}
+		
+		// Duration
+		blogDetail.Duration = getDuration(blogDetail.StartDate, blogDetail.EndDate)
+
+		//CHECKBOX
+		if checkValue(blogDetail.Technologies, "javascript") {
+			blogDetail.Javascript = true
+		}
+		if checkValue(blogDetail.Technologies, "php") {
+			blogDetail.PHP = true
+		}
+		if checkValue(blogDetail.Technologies, "java") {
+			blogDetail.Java = true
+		}
+		if checkValue(blogDetail.Technologies, "reactJS") {
+			blogDetail.ReactJS = true
+		}
+
+
+	data := map[string]interface{}{
+		"Id" : id,
+		"Blog": blogDetail,
+	}
+
+	var tmpl, err = template.ParseFiles("views/update-blog.html")
+	
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": err.Error()})
+	}
+
+	return tmpl.Execute(c.Response(), data)
+
+	}
+	
+	func updateBlog (c echo.Context) error {
+		// Menangkap Id dari Query Params
+		id, _:= strconv.Atoi(c.Param("id"))
+		
+		projectName := c.FormValue("input-projectName")
+		startDate := c.FormValue("input-startDate")
+		endDate := c.FormValue("input-endDate")
+		description := c.FormValue("input-description")
+		javascript := c.FormValue("input-javascript")
+		php := c.FormValue("input-php")
+		java := c.FormValue("input-java")
+		react := c.FormValue("input-reactJS")
+		technologies := []string{javascript,php,java,react}
+		image := c.FormValue("input-image")
+	
+		
+
+		insertDb, err := connection.Conn.Exec(context.Background(), "UPDATE public.tb_blog SET project_name=$1, description=$2, image=$3, start_date=$4, end_date=$5, technologies=$6 WHERE id=$7", projectName, description, image, startDate, endDate, technologies, id,)
+			
+		fmt.Println("Row Affected : ", insertDb.RowsAffected()  )
+
+		if err != nil {
+			fmt.Println("There is something error guys")
+			c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		
+		return c.Redirect(http.StatusMovedPermanently, "/")
+	}
+
+
+	func checkValue(slice []string, object string) bool {
+		for _, data := range slice {
+			if data == object {
+				return true
+			}
+		}
+		return false
 	}

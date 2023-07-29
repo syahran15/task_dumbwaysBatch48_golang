@@ -13,7 +13,7 @@
       crossorigin="anonymous"
     />
 
-    <title>Blog</title>
+    <title>Update Blog</title>
   </head>
   <body>
      <!-- Navbar -->
@@ -41,7 +41,7 @@
               <a class="nav-link" aria-current="page" href="/">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link active" href="blog">Blog</a>
+              <a class="nav-link active" href="#">Update Blog</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="testimonial">Testimonial</a>
@@ -58,27 +58,30 @@
 
     <!-- Content -->
     <section>
-      <h1 class="text-center mb-3 fs-2">Add My Project</h1>
-      <form action="/blog" method="POST" style="width: 40vw; margin: 0 auto;">
+      <h1 class="text-center mb-3 fs-2">Update My Project</h1>
+      <form action="/update-blog/{{.Blog.Id}}" method="POST" style="width: 40vw; margin: 0 auto;">
         <div class="mb-3 fw-bolder ">
           <label for="input-projectName" class="form-label">Project Name</label>
-          <input type="text" class="form-control" id="input-projectName" name="input-projectName">
+          <input type="text" class="form-control" id="input-projectName" name="input-projectName"  value="{{.Blog.ProjectName}}"
+          required>
         </div>
         <div class="d-flex mb-3 fw-bolder justify-content-between">
           <div class="start-date">
             <label for="input-startDate" class="form-label">Start</label>
-            <input type="date" class="form-control" id="input-startDate" name="input-startDate">
+            <input type="date" class="form-control" id="input-startDate" name="input-startDate" value="{{.StartDate}}"
+            required>
           </div>
           <div class="d-flex">
             <div class="end-date">
               <label for="input-endDate" class="form-label">End</label>
-              <input type="date" class="form-control" id="input-endDate" name="input-endDate">
+              <input type="date" class="form-control" id="input-endDate" name="input-endDate" value="{{.EndDate}}"
+              required>
             </div>
         </div>
         </div>
         <div class="mb-3 fw-bolder  ">
           <label for="input-description" class="form-label">Description</label>
-          <textarea class="form-control" id="input-description" name ="input-description" rows="5" style="resize: none;"></textarea>
+          <textarea class="form-control" id="input-description" name ="input-description" rows="5" style="resize: none;" value = "{{.Blog.Description}}" required ></textarea>
         </div>
         <label class="mb-3 fw-bolder ">Technology</label>
         <div class="container-technology d-flex justify-content-between mb-3">
@@ -87,13 +90,19 @@
               <label class="form-check-label" for="input-javascript">
                 JavaScript
               </label>
-              <input class="form-check-input" type="checkbox"  id="input-javascript" name="input-javascript" value = "javascript">
+              <input class="form-check-input" type="checkbox"  id="input-javascript" name="input-javascript" value = "javascript"   {{if
+                .Blog.Javascript}}
+                checked
+                {{end}}>
             </div>
             <div class="form-check">
               <label class="form-check-label" for="input-php">
                 PHP
               </label>
-              <input class="form-check-input" type="checkbox"  id="input-php" name="input-php" value="php">
+              <input class="form-check-input" type="checkbox"  id="input-php" name="input-php" value="php" {{if
+                .Blog.PHP}}
+                checked
+                {{end}}>
             </div>
           </div>
           <div class="technology-right">
@@ -101,19 +110,25 @@
               <label class="form-check-label" for="input-java">
                 Java
               </label>
-              <input class="form-check-input" type="checkbox"  id="input-java" name="input-java" value = "java">
+              <input class="form-check-input" type="checkbox"  id="input-java" name="input-java" value = "java" {{if
+                .Blog.Java}}
+                checked
+                {{end}}>
             </div>
             <div class="form-check">
               <label class="form-check-label" for="input-reactJS">
                 ReactJS
               </label>
-              <input class="form-check-input" type="checkbox"  id="input-reactJS" name="input-reactJS" value = "reactJS">
+              <input class="form-check-input" type="checkbox"  id="input-reactJS" name="input-reactJS" value = "reactJS" {{if
+                .Blog.ReactJS}}
+                checked
+                {{end}}>
             </div>
           </div>
         </div>
         <div class="mb-3 fw-bolder">
           <label for="input-image" class="form-label">Upload Image</label>
-          <input class="form-control" type="file" id="input-image" name="input-image">
+          <input class="form-control" type="file" id="input-image" name="input-image" required>
         </div>
         <button type="submit" class="btn btn-primary px-3 d-flex ms-auto">Submit</button>
       </form>
