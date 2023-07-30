@@ -58,6 +58,15 @@
               <a class="nav-link" href="testimonial">Testimonial</a>
             </li>
           </ul>
+          {{if .DataSession.IsLogin}}
+          <a href="#" class="me-5"  style="text-decoration: none; color: black;">Hello, {{.DataSession.Name}}</a>
+          <form id="myform" action="/logout" method="POST" class="me-5" style="cursor: pointer;">
+          <a onclick="document.getElementById('myform').submit()" class="btn-auth" style="text-decoration: none; color: black;">Logout</a>
+          </form>
+          {{else}}
+          <a href="/form-register" class="btn-auth me-5" style="text-decoration: none; color: black;">Register</a>
+          <a href="/form-login" class="btn-auth me-5" style="text-decoration: none; color: black;">Login</a>
+          {{end}}
           <a href="contact" class="btn btn-contact rounded-3 px-4 py-2">
             Contact Me
           </a>         
@@ -66,6 +75,23 @@
       </div>
     </nav>
     <!-- Navbar End -->
+
+    {{if .FlashMessage}}
+    {{if .FlashStatus}}
+    <div class="container-fluid" style="margin-top: 5em;">
+        <div class="alert alert-primary" role="alert">
+            <strong>{{.FlashMessage}}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    {{else}}
+    <div class="container">
+        <div class="alert alert-danger" role="alert">
+            <strong>{{.FlashMessage}}</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    {{end}} {{end}}
 
     <!-- Content -->
     <section class = "container">
@@ -110,7 +136,14 @@
     
     <!-- Result Blog -->
     <section class="container-fluid">
-      <h1 class="text-center">My Project</h1>
+      <div class="container-fluid d-flex justify-content-center">
+        <h1 class="text-center">My Project</h1>
+        {{if .DataSession.IsLogin}}
+        <div class="btn btn-primary ms-4 d-flex justify-content-center " style=" border-radius: 50%; width: 3em; height: 3em; line-height: 3.5em; padding: 0;">
+          <a href="/blog" style="text-decoration: none; border: none;"><i class="fa-solid fa-plus" style="color: white; font-size: 2em;"></i></a>
+        </div>
+        {{end}}
+      </div>
       <div class="row d-flex justify-content-center">
         {{range $index, $blog := .Blogs}}
         <div class="card col col-sm-12 col-md-6 col-lg-4 m-3" style="width: 25rem;  ">

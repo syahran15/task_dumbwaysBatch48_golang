@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"personal-web/connection"
 	"strconv"
@@ -10,7 +11,10 @@ import (
 
 	"time"
 
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Create struct -> struct is like class in javascript
@@ -30,6 +34,22 @@ type Blog struct {
 	Image string
 }
 
+// USER STRUCT
+type User struct {
+	Id int
+	Name string
+	Email string
+	Password string
+}
+
+type SessionData struct {
+	IsLogin bool
+	Name string
+}
+
+var userData = SessionData{}
+
+
 func main() {
 
 	e := echo.New()
@@ -41,6 +61,9 @@ func main() {
     //     return c.String(http.StatusOK, "Hello, Saya Ahmad")
     // })
     // e.Logger.Fatal(e.Start("localhost:700"))
+
+	// To Use sessions using echo
+	e.Use(session.Middleware(sessions.NewCookieStore([]byte("session"))))
 	
 	e.GET("/", index)
 	e.GET("/blog", blog)
@@ -55,7 +78,16 @@ func main() {
 	e.POST("/delete-blog/:id", deleteBlog)
 	e.POST("/update-blog/:id", updateBlog)
 
+	// REGISTER
+	e.GET("/form-register", formRegister)
+	e.POST("/register", register)
 
+	//LOGIN
+	e.GET("/form-login", formLogin)
+	e.POST("/login", login)
+
+	// LOG OUT
+	e.POST("/logout", logout)
 
 
 	e.Logger.Fatal(e.Start(":5000"))
@@ -101,12 +133,7 @@ func main() {
 
 }
 
-func index(c echo.Context) error {
-	tmpl, err := template.ParseFiles("views/index.html")
-
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err.Error())
-	}
+	func index(c echo.Context) error {
 
 	// GET DATA FROM DATABASE
 	dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT id, project_name, description, image, start_date, end_date, technologies FROM public.tb_blog")
@@ -144,12 +171,39 @@ func index(c echo.Context) error {
 		resultBlogs = append(resultBlogs, each)
 	}
 
+
+	// GET DATA SESSION FOR LOGIN
+	sess, _ := session.Get("session", c)
+	
 	blog := map[string]interface{}{
 		"Blogs": resultBlogs,
+		"FlashStatus" : sess.Values["status"],
+		"FlashMessage" : sess.Values["message"],
+		"DataSession" : userData,
+	}
+
+	delete(sess.Values, "message")
+	delete(sess.Values, "status")
+	sess.Save(c.Request(), c.Response())
+
+	// SESSIONS CONDITION
+	if sess.Values["isLogin"] != true {
+		userData.IsLogin = false
+	} else {
+		userData.IsLogin = sess.Values["isLogin"].(bool)
+		userData.Name = sess.Values["name"].(string)
+	}
+
+
+	tmpl, err := template.ParseFiles("views/index.html")
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return tmpl.Execute(c.Response(), blog)
 }
+
 
 	
 	func blog (c echo.Context) error  {
@@ -232,8 +286,6 @@ func index(c echo.Context) error {
 	return tmpl.Execute(c.Response(), data)
 
 	}
-
-
 
 	func addBlog(c echo.Context) error {
 		projectName := c.FormValue("input-projectName")
@@ -354,4 +406,111 @@ func index(c echo.Context) error {
 			}
 		}
 		return false
+	}
+
+	func formRegister (c echo.Context) error {
+		var tmpl, err = template.ParseFiles("views/form-register.html")
+
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"message " : err.Error()})
+		}
+
+		return tmpl.Execute(c.Response(), nil)
+	}
+
+	func register(c echo.Context) error  {
+		// to make sure request body is form data format, not JSON , XML etc
+		err := c.Request(). ParseForm()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		name := c.FormValue("input-name")
+		email := c.FormValue("input-email")
+		passsword := c.FormValue("input-password")
+
+		passswordHash, _ := bcrypt.GenerateFromPassword([]byte(passsword), 10)
+
+		_ , err = connection.Conn.Exec(context.Background(), "INSERT INTO tb_user(name, email, password) VALUES ($1, $2, $3)", name, email, passswordHash)
+		if err != nil {
+			redirectWithMessage(c, "Register failed, please try again", false, "/form-register")
+		}
+
+		fmt.Println(err)
+		
+		return redirectWithMessage(c, "Register success !", true, "/form-login")
+}
+
+	func formLogin (c echo.Context) error {
+
+		sess, _ := session.Get("session", c)
+	
+		flash := map[string]interface{}{
+			"FlashStatus" : sess.Values["status"],
+			"FlashMessage" : sess.Values["message"],
+		}
+
+		delete(sess.Values, "message")
+		delete(sess.Values, "status")
+		sess.Save(c.Request(), c.Response())
+		
+		var tmpl, err = template.ParseFiles("views/form-login.html")
+
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"message " : err.Error()})
+		}
+
+		return tmpl.Execute(c.Response(), flash)
+	}
+
+	func login (c echo.Context) error  {
+		err := c.Request().ParseForm()
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		email := c.FormValue("input-email")
+		passsword := c.FormValue("input-password")
+
+		user := User{}
+		err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, email, password FROM tb_user WHERE email=$1", email).Scan(&user.Id, &user.Name, &user.Email,&user.Password)
+
+		if err != nil {
+			return redirectWithMessage(c, "Email Incorrect !", false, "form-login")
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(passsword))
+		if err != nil {
+			return redirectWithMessage(c, "Password Incorrected", false, "/form-login")
+		}
+
+		sess, _ := session.Get("session", c)
+		sess.Options.MaxAge = 10800 // Batas maksimal sesi adalah 3 jam
+		sess.Values["message"] = "Login Success!"
+		sess.Values["status"] = true
+		sess.Values["name"] = user.Name
+		sess.Values["email"] = user.Email
+		sess.Values["id"] = user.Id
+		sess.Values["isLogin"] = true
+		sess.Save(c.Request(), c.Response())
+
+		return c.Redirect(http.StatusMovedPermanently, "/")
+	}
+
+	func redirectWithMessage (c echo.Context, message string, status bool, path string ) error {
+		sess, _ := session.Get("session", c)
+		sess.Values["message"] = message
+		sess.Values["status"] = status
+		sess.Save(c.Request(), c.Response())
+
+		return c.Redirect(http.StatusMovedPermanently, path)
+	}
+
+	func logout (c echo.Context) error {
+		sess, _ := session.Get("session", c)
+		sess.Options.MaxAge = -1
+		sess.Save(c.Request(), c.Response())
+
+		return c.Redirect(http.StatusMovedPermanently, "/")
 	}
