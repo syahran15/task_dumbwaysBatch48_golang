@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"personal-web/connection"
+	"personal-web/middleware"
 	"strconv"
 	"text/template"
 
@@ -57,6 +58,7 @@ func main() {
 	connection.DatabaseConnect()
 
 	e.Static("/public", "public")
+	e.Static("/uploads", "uploads")
     // e.GET("/", func(c echo.Context) error {
     //     return c.String(http.StatusOK, "Hello, Saya Ahmad")
     // })
@@ -74,7 +76,7 @@ func main() {
 
 
 	//POST routing
-	e.POST("/blog", addBlog)
+	e.POST("/blog", middleware.UploadFile(addBlog))
 	e.POST("/delete-blog/:id", deleteBlog)
 	e.POST("/update-blog/:id", updateBlog)
 
@@ -90,7 +92,7 @@ func main() {
 	e.POST("/logout", logout)
 
 
-	e.Logger.Fatal(e.Start(":5000"))
+	e.Logger.Fatal(e.Start("Localhost:5000"))
 
 }
 
@@ -135,8 +137,23 @@ func main() {
 
 	func index(c echo.Context) error {
 
+		// GET DATA SESSION FOR LOGIN
+	sess, _ := session.Get("session", c)
+	
+	delete(sess.Values, "message")
+	delete(sess.Values, "status")
+	sess.Save(c.Request(), c.Response())
+
+	// SESSIONS CONDITION
+	if sess.Values["isLogin"] != true {
+		userData.IsLogin = false
+	} else {
+		userData.IsLogin = sess.Values["isLogin"].(bool)
+		userData.Name = sess.Values["name"].(string)
+	}
+
 	// GET DATA FROM DATABASE
-	dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT id, project_name, description, image, start_date, end_date, technologies FROM public.tb_blog")
+	dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT tb_blog.id, project_name, description, image, start_date, end_date, technologies, tb_user.name AS author FROM public.tb_blog JOIN tb_user ON tb_blog.author_id = tb_user.id ORDER BY tb_blog.id DESC")
 
 	if errBlog != nil {
 		return c.JSON(http.StatusInternalServerError, errBlog.Error())
@@ -146,12 +163,11 @@ func main() {
 	for dataBlog.Next() {
 		var each = Blog{}
 
-		err := dataBlog.Scan(&each.Id, &each.ProjectName, &each.Description, &each.Image, &each.StartDate, &each.EndDate, &each.Technologies)
+		err := dataBlog.Scan(&each.Id, &each.ProjectName, &each.Description, &each.Image, &each.StartDate, &each.EndDate, &each.Technologies, &each.Author)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err.Error())
 		}
 
-		// Duration
 		each.Duration = getDuration(each.StartDate, each.EndDate)
 
 		//CHECKBOX
@@ -172,8 +188,6 @@ func main() {
 	}
 
 
-	// GET DATA SESSION FOR LOGIN
-	sess, _ := session.Get("session", c)
 	
 	blog := map[string]interface{}{
 		"Blogs": resultBlogs,
@@ -182,17 +196,6 @@ func main() {
 		"DataSession" : userData,
 	}
 
-	delete(sess.Values, "message")
-	delete(sess.Values, "status")
-	sess.Save(c.Request(), c.Response())
-
-	// SESSIONS CONDITION
-	if sess.Values["isLogin"] != true {
-		userData.IsLogin = false
-	} else {
-		userData.IsLogin = sess.Values["isLogin"].(bool)
-		userData.Name = sess.Values["name"].(string)
-	}
 
 
 	tmpl, err := template.ParseFiles("views/index.html")
@@ -244,8 +247,13 @@ func main() {
 		//query get 1 data
 		idToInt, _ := strconv.Atoi(id)
 
-		errQuery := connection.Conn.QueryRow(context.Background(), "SELECT id, project_name, description, image, start_date, end_date, technologies FROM public.tb_blog WHERE id = $1", idToInt).Scan(&blogDetail.Id, &blogDetail.ProjectName, &blogDetail.Description, &blogDetail.Image,  &blogDetail.StartDate,  &blogDetail.EndDate ,&blogDetail.Technologies)
-
+		errQuery := connection.Conn.QueryRow(context.Background(), `
+		SELECT tb_blog.id, project_name, description, image, start_date, end_date, technologies, tb_user.name AS author
+		FROM public.tb_blog
+		JOIN tb_user ON tb_blog.author_id = tb_user.id
+		WHERE tb_blog.id = $1
+	`, idToInt).Scan(&blogDetail.Id, &blogDetail.ProjectName, &blogDetail.Description, &blogDetail.Image, &blogDetail.StartDate, &blogDetail.EndDate, &blogDetail.Technologies, &blogDetail.Author)
+	
 
 		if errQuery != nil {
 			return c.JSON(http.StatusInternalServerError, errQuery.Error())
@@ -297,11 +305,16 @@ func main() {
 		java := c.FormValue("input-java")
 		react := c.FormValue("input-reactJS")
 		technologies := []string{javascript,php,java,react}
-		image := c.FormValue("input-image")
+		// image := c.FormValue("input-image")
+
+		sess, _ := session.Get("session", c)
+		author := sess.Values["id"].(int)
+
+		image := c.Get("dataFile").(string)
 	
 		
 
-		insertDb, err := connection.Conn.Exec(context.Background(), "INSERT INTO public.tb_blog (project_name, description, image, start_date, end_date, technologies) VALUES ($1, $2, $3, $4, $5, $6)", projectName, description, image, startDate, endDate, technologies)
+		insertDb, err := connection.Conn.Exec(context.Background(), "INSERT INTO public.tb_blog (project_name, description, image, start_date, end_date, technologies, author_id) VALUES ($1, $2, $3, $4, $5, $6, $7)", projectName, description, image, startDate, endDate, technologies, author)
 			
 		fmt.Println("Row Affected : ", insertDb.RowsAffected()  )
 
