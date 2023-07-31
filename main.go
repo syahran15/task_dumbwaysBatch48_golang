@@ -73,12 +73,13 @@ func main() {
 	e.GET("/contact", contact)
 	e.GET("/detail-blog/:id", detailBlog)
 	e.GET("/update-blog-form/:id", updateBlogForm)
+	e.GET("/all-projects", allProjects)
 
 
 	//POST routing
 	e.POST("/blog", middleware.UploadFile(addBlog))
 	e.POST("/delete-blog/:id", deleteBlog)
-	e.POST("/update-blog/:id", updateBlog)
+	e.POST("/update-blog/:id", middleware.UploadFile(updateBlog))
 
 	// REGISTER
 	e.GET("/form-register", formRegister)
@@ -96,48 +97,11 @@ func main() {
 
 }
 
-	func getDuration(startDate, endDate time.Time) string {
-
-
-	durationTime := int(endDate.Sub(startDate).Hours())
-	durationDays := durationTime / 24
-	durationWeeks := durationDays / 7
-	durationMonths := durationWeeks / 4
-	durationYears := durationMonths / 12
-
-	var duration string
-	
-	if durationYears > 1 {
-		duration = strconv.Itoa(durationYears) + " years"
-	} else if durationYears > 0 {
-		duration = strconv.Itoa(durationYears) + " year"
-	} else {
-		if durationMonths > 1 {
-			duration = strconv.Itoa(durationMonths) + " months"
-		} else if durationMonths > 0 {
-			duration = strconv.Itoa(durationMonths) + " month"
-		} else {
-			if durationWeeks > 1 {
-				duration = strconv.Itoa(durationWeeks) + " weeks"
-			} else if durationWeeks > 0 {
-				duration = strconv.Itoa(durationWeeks) + " week"
-			} else {
-				if durationDays > 1 {
-					duration = strconv.Itoa(durationDays) + " days"
-				} else {
-					duration = strconv.Itoa(durationDays) + " day"
-				}
-			}
-		}
-	}
-
-	return duration
-
-}
-
 	func index(c echo.Context) error {
 
-		// GET DATA SESSION FOR LOGIN
+	var resultBlogs []Blog
+	
+	// GET DATA SESSION FOR LOGIN
 	sess, _ := session.Get("session", c)
 	
 	delete(sess.Values, "message")
@@ -150,11 +114,67 @@ func main() {
 	} else {
 		userData.IsLogin = sess.Values["isLogin"].(bool)
 		userData.Name = sess.Values["name"].(string)
+		userId := sess.Values["id"]
+
+		// GET DATA FROM DATABASE
+		dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT tb_blog.id, project_name, description, image, start_date, end_date, technologies, tb_user.name AS author FROM public.tb_blog LEFT JOIN tb_user ON tb_blog.author_id = tb_user.id WHERE author_id=$1 ORDER BY tb_blog.id DESC", userId)
+
+		if errBlog != nil {
+			return c.JSON(http.StatusInternalServerError, errBlog.Error())
+		}
+
+		for dataBlog.Next() {
+			var each = Blog{}
+
+			err := dataBlog.Scan(&each.Id, &each.ProjectName, &each.Description, &each.Image, &each.StartDate, &each.EndDate, &each.Technologies, &each.Author)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, err.Error())
+			}
+
+			each.Duration = getDuration(each.StartDate, each.EndDate)
+
+			//CHECKBOX
+			if checkValue(each.Technologies, "javascript") {
+				each.Javascript = true
+			}
+			if checkValue(each.Technologies, "php") {
+				each.PHP = true
+			}
+			if checkValue(each.Technologies, "java") {
+				each.Java = true
+			}
+			if checkValue(each.Technologies, "reactJS") {
+				each.ReactJS = true
+			}
+
+			resultBlogs = append(resultBlogs, each)
+		}
 	}
 
-	// GET DATA FROM DATABASE
-	dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT tb_blog.id, project_name, description, image, start_date, end_date, technologies, tb_user.name AS author FROM public.tb_blog JOIN tb_user ON tb_blog.author_id = tb_user.id ORDER BY tb_blog.id DESC")
+	
+	blog := map[string]interface{}{
+		"Blogs": resultBlogs,
+		"FlashStatus" : sess.Values["status"],
+		"FlashMessage" : sess.Values["message"],
+		"DataSession" : userData,
+	}
 
+
+
+	tmpl, err := template.ParseFiles("views/index.html")
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return tmpl.Execute(c.Response(), blog)
+}
+
+	func allProjects(c echo.Context) error {
+
+	// GET DATA FROM DATABASE
+	dataBlog, errBlog := connection.Conn.Query(context.Background(), "SELECT tb_blog.id, project_name, description, image, start_date, end_date, technologies, tb_user.name FROM public.tb_blog JOIN tb_user ON tb_blog.author_id = tb_user.id ORDER BY tb_blog.id DESC")
+	
 	if errBlog != nil {
 		return c.JSON(http.StatusInternalServerError, errBlog.Error())
 	}
@@ -186,19 +206,30 @@ func main() {
 
 		resultBlogs = append(resultBlogs, each)
 	}
+		// GET DATA SESSION FOR LOGIN
+		sess, _ := session.Get("session", c)
 
+		// SESSIONS CONDITION
+		if sess.Values["isLogin"] != true {
+			userData.IsLogin = false
+		} else {
+			userData.IsLogin = sess.Values["isLogin"].(bool)
+			userData.Name = sess.Values["name"].(string)
+		}
+		
 
-	
-	blog := map[string]interface{}{
+		blog := map[string]interface{}{
 		"Blogs": resultBlogs,
-		"FlashStatus" : sess.Values["status"],
-		"FlashMessage" : sess.Values["message"],
+
 		"DataSession" : userData,
 	}
 
+		delete(sess.Values, "message")
+		delete(sess.Values, "status")
+		sess.Save(c.Request(), c.Response())
 
 
-	tmpl, err := template.ParseFiles("views/index.html")
+	tmpl, err := template.ParseFiles("views/all-projects.html")
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -207,8 +238,6 @@ func main() {
 	return tmpl.Execute(c.Response(), blog)
 }
 
-
-	
 	func blog (c echo.Context) error  {
 		tmpl, err := template.ParseFiles("views/blog.html")
 
@@ -395,7 +424,9 @@ func main() {
 		java := c.FormValue("input-java")
 		react := c.FormValue("input-reactJS")
 		technologies := []string{javascript,php,java,react}
-		image := c.FormValue("input-image")
+		image := c.Get("dataFile").(string)
+
+		
 	
 		
 
@@ -421,6 +452,44 @@ func main() {
 		return false
 	}
 
+	func getDuration(startDate, endDate time.Time) string {
+
+
+		durationTime := int(endDate.Sub(startDate).Hours())
+		durationDays := durationTime / 24
+		durationWeeks := durationDays / 7
+		durationMonths := durationWeeks / 4
+		durationYears := durationMonths / 12
+	
+		var duration string
+		
+		if durationYears > 1 {
+			duration = strconv.Itoa(durationYears) + " years"
+		} else if durationYears > 0 {
+			duration = strconv.Itoa(durationYears) + " year"
+		} else {
+			if durationMonths > 1 {
+				duration = strconv.Itoa(durationMonths) + " months"
+			} else if durationMonths > 0 {
+				duration = strconv.Itoa(durationMonths) + " month"
+			} else {
+				if durationWeeks > 1 {
+					duration = strconv.Itoa(durationWeeks) + " weeks"
+				} else if durationWeeks > 0 {
+					duration = strconv.Itoa(durationWeeks) + " week"
+				} else {
+					if durationDays > 1 {
+						duration = strconv.Itoa(durationDays) + " days"
+					} else {
+						duration = strconv.Itoa(durationDays) + " day"
+					}
+				}
+			}
+		}
+	
+		return duration
+	
+	}
 	func formRegister (c echo.Context) error {
 		var tmpl, err = template.ParseFiles("views/form-register.html")
 
@@ -499,7 +568,7 @@ func main() {
 		}
 
 		sess, _ := session.Get("session", c)
-		sess.Options.MaxAge = 10800 // Batas maksimal sesi adalah 3 jam
+		sess.Options.MaxAge = 60 // Batas maksimal sesi adalah 3 jam
 		sess.Values["message"] = "Login Success!"
 		sess.Values["status"] = true
 		sess.Values["name"] = user.Name
